@@ -1,0 +1,632 @@
+import React, { useState } from ‘react’;
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from ‘recharts’;
+import { ChevronDown, ChevronUp, CheckCircle2, Circle } from ‘lucide-react’;
+
+// ロゴ画像（Base64エンコード済み）
+const LOGO_IMAGE = ‘data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==’;
+
+const BodyConstitutionApp = () => {
+// 22項目のチェックリスト
+const checkItems = [
+“胸やおなかが張って苦しいことが多い”,
+“イライラしやすく怒りっぽい”,
+“不眠になりやすい”,
+“黄色い粘りのある痰や鼻水がよく出る”,
+“尿がよく濃い黄色になる”,
+“肩がこりやすい”,
+“唇や歯ぐきの色が紫に近い”,
+“頭が重く感じられることが多い”,
+“雨の日や湿度の高い日は体調が悪くなりがち”,
+“皮膚が乾燥してカサカサしている”,
+“舌の縁がギザギザになっている”,
+“舌苔がべったりついていて厚みがある”,
+“舌の裏の静脈が太くふくらんで見える”,
+“食が細いほうだ”,
+“下痢や軟便になることがよくある”,
+“よく、腰やひざに疲れや脱力感を覚える”,
+“むくみを感じることが多い”,
+“髪の毛が抜けやすい”,
+“目が疲れたり、乾燥しやすい”,
+“筋肉がけいれんしたり、つりやすい”,
+“体温は高くないが、体が熱っぽく感じる”,
+“疲労時や夜に次こく手のひらや足の裏が熱くなる”
+];
+
+// スコアテーブル（画像から抽出）
+const scoreTable = [
+[’-’, ‘-’, ‘-’, ‘-’, 3, 1, ‘-’, 1],      // 1
+[’-’, ‘-’, ‘-’, 2, 3, ‘-’, ‘-’, ‘-’],    // 2
+[’-’, ‘-’, 3, 2, 3, ‘-’, 1, ‘-’],        // 3
+[’-’, ‘-’, ‘-’, ‘-’, ‘-’, 3, ‘-’, ‘-’],  // 4
+[’-’, ‘-’, ‘-’, 1, ‘-’, 3, ‘-’, ‘-’],    // 5
+[’-’, ‘-’, ‘-’, ‘-’, 3, 1, 3, 1],        // 6
+[’-’, ‘-’, ‘-’, ‘-’, ‘-’, ‘-’, 3, ‘-’],  // 7
+[1, ‘-’, ‘-’, ‘-’, ‘-’, 1, 1, 3],        // 8
+[’-’, ‘-’, ‘-’, ‘-’, ‘-’, 1, ‘-’, 3],    // 9
+[’-’, ‘-’, 3, 1, ‘-’, ‘-’, 1, ‘-’],      // 10
+[3, 1, ‘-’, ‘-’, ‘-’, ‘-’, ‘-’, 2],      // 11
+[2, 1, ‘-’, ‘-’, ‘-’, 2, ‘-’, 2],        // 12
+[’-’, ‘-’, ‘-’, ‘-’, ‘-’, ‘-’, 3, ‘-’],  // 13
+[3, ‘-’, ‘-’, ‘-’, ‘-’, ‘-’, ‘-’, ‘-’],  // 14
+[3, 1, ‘-’, ‘-’, ‘-’, 1, ‘-’, 2],        // 15
+[’-’, 3, ‘-’, ‘-’, ‘-’, ‘-’, ‘-’, ‘-’],  // 16
+[’-’, 3, ‘-’, ‘-’, ‘-’, ‘-’, ‘-’, 2],    // 17
+[’-’, 2, 3, ‘-’, ‘-’, 1, 1, ‘-’],        // 18
+[’-’, ‘-’, 3, 1, ‘-’, ‘-’, ‘-’, ‘-’],    // 19
+[’-’, ‘-’, 3, 1, 1, ‘-’, ‘-’, ‘-’],      // 20
+[’-’, ‘-’, ‘-’, 3, 2, 1, ‘-’, ‘-’],      // 21
+[’-’, ‘-’, ‘-’, 3, ‘-’, ‘-’, ‘-’, ‘-’]   // 22
+];
+
+// 体質タイプ情報
+const constitutionTypes = {
+A: {
+name: “脾虚”,
+reading: “ひきょ”,
+description: “胃腸が弱く、疲れやすい体質”,
+color: “from-blue-100 to-blue-50”,
+bgColor: “bg-blue-50”,
+borderColor: “border-blue-300”,
+textColor: “text-blue-700”,
+state: “胃腸の働きが弱く、栄養をうまく吸収できていません。エネルギー不足で疲れやすく、だるさを感じやすい状態です。”,
+bodycare: [
+“温かい食事を心がける（特に朝食）”,
+“足三里（あしさんり）というツボを温める”,
+“腹部のマッサージで消化を助ける”,
+“ラッパズイ、山芋などの消化良い食材を積極的に摂取”
+],
+lifestyle: [
+“食事：白米、山芋、南瓜などの甘い食材を意識的に摂取”,
+“睡眠：夜11時までに就寝し、規則正しい生活を”,
+“運動：ウォーキングなど無理のない運動”,
+“心：心配しすぎず、ゆったりとした気持ちで過ごす”
+]
+},
+B: {
+name: “腎陽虚”,
+reading: “じんようきょ”,
+description: “熱不足で冷えが強い体質”,
+color: “from-amber-100 to-amber-50”,
+bgColor: “bg-amber-50”,
+borderColor: “border-amber-300”,
+textColor: “text-amber-700”,
+state: “体を温める陽気が不足していため、冷えが強い体質です。下半身の冷え、手足の冷感が特に顕著です。”,
+bodycare: [
+“温かいお風呂に15分以上浸かる”,
+“腎兪（じんゆ）のツボを温灸で温める”,
+“足浴で下半身を温める”,
+“生姜湿布で腹部を温める”
+],
+lifestyle: [
+“食事：温かい汁物、生姜、黒い食材（黒豆、黒ゴマ）を摂取”,
+“睡眠：十分な睡眠と休息が重要（冷え対策は休養から）”,
+“運動：無理のない範囲でのストレッチやヨガ”,
+“心：焦らず、ゆったりとした心持ちで”
+]
+},
+C: {
+name: “血虚”,
+reading: “けつきょ”,
+description: “女性に多い血が不足した体質”,
+color: “from-rose-100 to-rose-50”,
+bgColor: “bg-rose-50”,
+borderColor: “border-rose-300”,
+textColor: “text-rose-700”,
+state: “全身を巡って諸臓器に栄養を届けるのが血であり、この血が不足した状態です。栄養が不足するため諸臓器が栄養不足になり、様々な不調が生じます。”,
+bodycare: [
+“三陰交（さんいんこう）のツボを押す”,
+“頭皮マッサージで血行促進”,
+“足のマッサージで末端の血流改善”,
+“アロマテラピーでリラックス”
+],
+lifestyle: [
+“食事：黒い食材（黒豆、黒ゴマ、プルーン）、ほうれん草などの鉄分豊富な食材”,
+“睡眠：十分な睡眠時間の確保”,
+“運動：ウォーキング、ストレッチで血流促進”,
+“心：瞑想やヨガで心を落ち着ける”
+]
+},
+D: {
+name: “陰虚”,
+reading: “いんきょ”,
+description: “津液が不足で乾燥気味の体質”,
+color: “from-orange-100 to-orange-50”,
+bgColor: “bg-orange-50”,
+borderColor: “border-orange-300”,
+textColor: “text-orange-700”,
+state: “体を潤す津液が不足した状態です。皮膚や髪が乾燥しやすく、熱がこもりやすい傾向があります。”,
+bodycare: [
+“白湯を1日1リットル以上飲む”,
+“太泉（たいせん）のツボを優しく押す”,
+“夜間の入浴で体を温める”,
+“肌のパックで保湿ケア”
+],
+lifestyle: [
+“食事：白きくらげ、蜂蜜、豆乳などの潤す食材”,
+“睡眠：質の良い睡眠を心がける（寝る1時間前のスマホ禁止）”,
+“運動：激しい運動は避け、ゆったりとしたヨガ”,
+“心：過度な心配やストレスを避ける”
+]
+},
+E: {
+name: “気滞”,
+reading: “きたい”,
+description: “気の巡りが悪い体質”,
+color: “from-green-100 to-green-50”,
+bgColor: “bg-green-50”,
+borderColor: “border-green-300”,
+textColor: “text-green-700”,
+state: “生命エネルギーである気の巡りが悪い体質です。ストレスや抑圧感により気が滞りやすい傾向があります。”,
+bodycare: [
+“太衝（たいしょう）のツボを押す”,
+“胸部のストレッチで気の流れを促進”,
+“深呼吸を意識的に行う”,
+“アロマテラピーでリラックス”
+],
+lifestyle: [
+“食事：玉ねぎ、ローズマリー、ジャスミンティーなど気を巡らす食材”,
+“睡眠：ストレス管理と十分な睡眠”,
+“運動：ウォーキングやダンスで体を動かす”,
+“心：瞑想やマインドフルネスでストレス軽減”
+]
+},
+F: {
+name: “湿熱”,
+reading: “しつねつ”,
+description: “余分な津液と熱がこもった体質”,
+color: “from-amber-200 to-orange-100”,
+bgColor: “bg-yellow-50”,
+borderColor: “border-yellow-300”,
+textColor: “text-yellow-700”,
+state: “過剰に溜まった津液の中に熱がこもった状態です。汗が多く体がかゆくなる傾向があります。”,
+bodycare: [
+“陰陵泉（いんりょうせん）のツボを押す”,
+“足浴で下半身を温める”,
+“ドライスキンブラシでマッサージ”,
+“通気性の良い衣服を着用”
+],
+lifestyle: [
+“食事：冬瓜、緑豆、ハトムギなど湿熱を取る食材”,
+“睡眠：寝室の湿度管理、通気性の良い布団”,
+“運動：ウォーキングなど軽い運動”,
+“心：油っこいものや甘いものを控える”
+]
+},
+G: {
+name: “血瘀”,
+reading: “けつお”,
+description: “皮膚が黒っぽい血が滞った体質”,
+color: “from-red-100 to-red-50”,
+bgColor: “bg-red-50”,
+borderColor: “border-red-300”,
+textColor: “text-red-700”,
+state: “血の巡りが悪い体質です。血が滞っていると黒ずんで見える傾向があります。”,
+bodycare: [
+“三陰交（さんいんこう）のツボを刺激”,
+“血海（けっかい）のツボを温灸”,
+“足のリフレクソロジー”,
+“温かいマッサージで血流促進”
+],
+lifestyle: [
+“食事：ベリー類、黒木耳、山楂などの血流改善食材”,
+“睡眠：適度な運動で血流改善”,
+“運動：ウォーキングやストレッチで体を動かす”,
+“心：ストレス軽減と定期的な運動”
+]
+},
+H: {
+name: “湿痰”,
+reading: “しったん”,
+description: “津液が過剰な水太り体質”,
+color: “from-teal-100 to-cyan-50”,
+bgColor: “bg-cyan-50”,
+borderColor: “border-cyan-300”,
+textColor: “text-cyan-700”,
+state: “津液が過剰に溜まって湿となり、さらに湿が固まって痰となった状態です。この湿痰が体内に溜まっている体質です。”,
+bodycare: [
+“足三里（あしさんり）のツボを温灸”,
+“腹部マッサージで消化促進”,
+“リンパドレナージュ”,
+“足浴で下半身を温める”
+],
+lifestyle: [
+“食事：冬瓜、昆布などの水分調整食材、油っこいものを控える”,
+“睡眠：十分な睡眠と適度な運動”,
+“運動：ウォーキングなど無理のない運動”,
+“心：適度な活動で水分代謝を改善”
+]
+}
+};
+
+const [checked, setChecked] = useState(new Array(22).fill(false));
+const [currentPage, setCurrentPage] = useState(‘top’); // top, check, result
+const [expandedType, setExpandedType] = useState(null);
+
+// チェック状態の切り替え
+const toggleCheck = (index) => {
+const newChecked = […checked];
+newChecked[index] = !newChecked[index];
+setChecked(newChecked);
+};
+
+// スコアの自動計算
+const calculateScores = () => {
+const rawScores = new Array(8).fill(0);
+
+```
+checked.forEach((isChecked, itemIndex) => {
+  if (isChecked) {
+    scoreTable[itemIndex].forEach((score, typeIndex) => {
+      if (score !== '-') {
+        rawScores[typeIndex] += parseInt(score);
+      }
+    });
+  }
+});
+
+// 10以上の場合は÷2
+const finalScores = rawScores.map(score => {
+  return score >= 10 ? Math.round((score / 2) * 10) / 10 : score;
+});
+
+return finalScores;
+```
+
+};
+
+const scores = calculateScores();
+const typeLetters = [‘A’, ‘B’, ‘C’, ‘D’, ‘E’, ‘F’, ‘G’, ‘H’];
+const scoreMap = {};
+typeLetters.forEach((letter, index) => {
+scoreMap[letter] = scores[index];
+});
+
+// 結果の分類（虚と実）
+const kyoTypes = [‘A’, ‘B’, ‘C’, ‘D’]; // 虚
+const jitsuTypes = [‘E’, ‘F’, ‘G’, ‘H’]; // 実
+
+const kyoScore = kyoTypes.reduce((sum, type) => sum + scoreMap[type], 0);
+const jitsuScore = jitsuTypes.reduce((sum, type) => sum + scoreMap[type], 0);
+
+// 最大スコアのタイプを取得
+const maxScore = Math.max(…scores);
+const maxTypes = typeLetters.filter((letter, index) => scores[index] === maxScore);
+
+// レーダーチャート用データ
+const radarData = [
+{ type: ‘脾虚(A)’, score: scoreMap[‘A’] },
+{ type: ‘腎陽虚(B)’, score: scoreMap[‘B’] },
+{ type: ‘血虚(C)’, score: scoreMap[‘C’] },
+{ type: ‘陰虚(D)’, score: scoreMap[‘D’] },
+{ type: ‘気滞(E)’, score: scoreMap[‘E’] },
+{ type: ‘湿熱(F)’, score: scoreMap[‘F’] },
+{ type: ‘血瘀(G)’, score: scoreMap[‘G’] },
+{ type: ‘湿痰(H)’, score: scoreMap[‘H’] }
+];
+
+// 進捗率
+const progress = (checked.filter(c => c).length / 22) * 100;
+
+// ============ TOP ============
+if (currentPage === ‘top’) {
+return (
+<div className="min-h-screen bg-gradient-to-b from-blue-100 via-cyan-50 to-white p-4">
+<div className="max-w-2xl mx-auto py-8">
+{/*
+===== ロゴ画像の挿入位置 =====
+GitHubで画像ファイル (logo.png) を追加した場合、
+以下のようにsrcを更新してください：
+<img src="./logo.png" alt="ボディバランスロゴ" className="w-32 h-32 mx-auto mb-6 drop-shadow-lg" />
+
+```
+        または相対パスで：
+        <img src={require('./images/logo.png')} alt="ボディバランスロゴ" className="w-32 h-32 mx-auto mb-6 drop-shadow-lg" />
+      */}
+
+      {/* 見出し */}
+      <h1 className="text-3xl md:text-4xl font-bold text-center text-gray-800 mb-3">
+        ボディバランスチェック
+      </h1>
+      <p className="text-center text-lg text-gray-600 mb-8">
+        今の身体の状態を確認しましょう！
+      </p>
+
+      {/* 説明文 */}
+      <div className="bg-white rounded-2xl shadow-lg p-6 mb-8 border-2 border-blue-200">
+        <p className="text-gray-700 leading-relaxed text-center">
+          東洋医学では、日常的に感じる症状や生活習慣の中から、気・血・津液の状態を診断することができます。
+        </p>
+        <p className="text-gray-700 leading-relaxed text-center mt-3">
+          ここでは22個の質問に答えることで、あなたの体質傾向を把握する方法を紹介します。
+        </p>
+      </div>
+
+      {/* CTA ボタン */}
+      <button
+        onClick={() => setCurrentPage('check')}
+        className="w-full bg-gradient-to-r from-blue-400 to-cyan-400 hover:from-blue-500 hover:to-cyan-500 text-white font-bold py-4 px-6 rounded-full shadow-lg text-lg transition-all transform hover:scale-105"
+      >
+        診断をはじめる →
+      </button>
+
+      {/* 補足 */}
+      <p className="text-center text-sm text-gray-500 mt-6">
+        所要時間：約5分
+      </p>
+    </div>
+  </div>
+);
+```
+
+}
+
+// ============ CHECK ============
+if (currentPage === ‘check’) {
+return (
+<div className="min-h-screen bg-gradient-to-b from-blue-100 via-cyan-50 to-white p-4">
+<div className="max-w-2xl mx-auto py-6">
+{/* ヘッダー */}
+<div className="flex items-center justify-between mb-6">
+<h2 className="text-2xl font-bold text-gray-800">チェックリスト</h2>
+<button
+onClick={() => setCurrentPage(‘top’)}
+className=“text-gray-600 hover:text-gray-800 font-semibold”
+>
+← 戻る
+</button>
+</div>
+
+```
+      {/* 進捗バー */}
+      <div className="mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm font-semibold text-gray-700">進捗</span>
+          <span className="text-sm font-bold text-blue-600">{checked.filter(c => c).length}/22</span>
+        </div>
+        <div className="w-full bg-gray-300 rounded-full h-3 overflow-hidden">
+          <div
+            className="bg-gradient-to-r from-blue-400 to-cyan-400 h-full transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
+      </div>
+
+      {/* チェックリスト */}
+      <div className="space-y-3 mb-8">
+        {checkItems.map((item, index) => (
+          <div
+            key={index}
+            onClick={() => toggleCheck(index)}
+            className={`p-4 rounded-lg cursor-pointer transition-all border-2 ${
+              checked[index]
+                ? 'bg-blue-100 border-blue-400 shadow-md'
+                : 'bg-white border-gray-200 hover:border-blue-300'
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <div className="mt-1">
+                {checked[index] ? (
+                  <CheckCircle2 className="w-6 h-6 text-blue-500" />
+                ) : (
+                  <Circle className="w-6 h-6 text-gray-400" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-800">{item}</p>
+                <p className="text-xs text-gray-500 mt-1">項目 {index + 1}</p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 結果ボタン */}
+      <button
+        onClick={() => setCurrentPage('result')}
+        disabled={checked.filter(c => c).length === 0}
+        className="w-full bg-gradient-to-r from-blue-400 to-cyan-400 hover:from-blue-500 hover:to-cyan-500 disabled:from-gray-300 disabled:to-gray-300 text-white font-bold py-4 px-6 rounded-full shadow-lg text-lg transition-all"
+      >
+        診断結果を見る →
+      </button>
+    </div>
+  </div>
+);
+```
+
+}
+
+// ============ RESULT ============
+if (currentPage === ‘result’) {
+return (
+<div className="min-h-screen bg-gradient-to-b from-blue-100 via-cyan-50 to-white p-4">
+<div className="max-w-3xl mx-auto py-6">
+{/* ヘッダー */}
+<div className="flex items-center justify-between mb-6">
+<h2 className="text-2xl font-bold text-gray-800">診断結果</h2>
+<button
+onClick={() => setCurrentPage(‘check’)}
+className=“text-gray-600 hover:text-gray-800 font-semibold”
+>
+← 修正
+</button>
+</div>
+
+```
+      {/* チェック項目数 */}
+      <div className="bg-white rounded-xl p-4 mb-6 border-l-4 border-blue-400 shadow">
+        <p className="text-sm text-gray-600">回答した項目</p>
+        <p className="text-2xl font-bold text-blue-600">{checked.filter(c => c).length}/22 項目</p>
+      </div>
+
+      {/* 回答した項目の内容表示 */}
+      {checked.filter(c => c).length > 0 && (
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border-2 border-blue-200">
+          <h3 className="text-lg font-bold text-gray-800 mb-4">✓ あなたが該当する項目</h3>
+          <div className="space-y-2 max-h-64 overflow-y-auto">
+            {checkItems.map((item, index) => (
+              checked[index] && (
+                <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                  <span className="text-blue-600 font-bold text-lg mt-0.5">✓</span>
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-800 font-medium">{item}</p>
+                    <p className="text-xs text-gray-500">項目 {index + 1}</p>
+                  </div>
+                </div>
+              )
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* レーダーチャート */}
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <h3 className="text-lg font-bold text-gray-800 mb-4">8体質バランス図</h3>
+        <ResponsiveContainer width="100%" height={300}>
+          <RadarChart data={radarData}>
+            <PolarGrid stroke="#e0e0e0" />
+            <PolarAngleAxis dataKey="type" tick={{ fontSize: 11 }} />
+            <PolarRadiusAxis angle={90} domain={[0, 10]} />
+            <Radar name="スコア" dataKey="score" stroke="#0ea5e9" fill="#06b6d4" fillOpacity={0.4} />
+          </RadarChart>
+        </ResponsiveContainer>
+      </div>
+
+      {/* 虚・実スコア */}
+      <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 border-2 border-blue-300 shadow">
+          <p className="text-xs text-gray-600 font-semibold">虚証スコア</p>
+          <p className="text-3xl font-bold text-blue-600">{kyoScore.toFixed(1)}</p>
+          <p className="text-xs text-gray-500 mt-1">A+B+C+D</p>
+        </div>
+        <div className="bg-gradient-to-br from-orange-50 to-red-50 rounded-xl p-4 border-2 border-orange-300 shadow">
+          <p className="text-xs text-gray-600 font-semibold">実証スコア</p>
+          <p className="text-3xl font-bold text-orange-600">{jitsuScore.toFixed(1)}</p>
+          <p className="text-xs text-gray-500 mt-1">E+F+G+H</p>
+        </div>
+      </div>
+
+      {/* メイン体質タイプ + 詳細アドバイス */}
+      <div className="mb-8">
+        <h3 className="text-lg font-bold text-gray-800 mb-4">あなたの体質タイプ</h3>
+        {maxTypes.map((type) => {
+          const typeInfo = constitutionTypes[type];
+          const isExpanded = expandedType === type;
+          return (
+            <div
+              key={type}
+              className={`bg-gradient-to-br ${typeInfo.color} rounded-xl shadow-lg border-2 ${typeInfo.borderColor} overflow-hidden mb-4`}
+            >
+              {/* ヘッダー（常に表示） */}
+              <button
+                onClick={() => setExpandedType(isExpanded ? null : type)}
+                className="w-full p-6 text-left hover:opacity-90 transition-all cursor-pointer"
+              >
+                <div className="flex items-start justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="bg-white rounded-full w-10 h-10 flex items-center justify-center font-bold text-lg text-gray-800">
+                        {type}
+                      </span>
+                      <p className={`text-2xl font-bold ${typeInfo.textColor}`}>{typeInfo.name}</p>
+                      <p className="text-sm text-gray-600">（{typeInfo.reading}）</p>
+                    </div>
+                    <p className="text-sm text-gray-700 font-medium">{typeInfo.description}</p>
+                  </div>
+                  <div className="flex flex-col items-end gap-2">
+                    <p className="text-3xl font-bold text-gray-800">{scoreMap[type].toFixed(1)}</p>
+                    {isExpanded ? (
+                      <ChevronUp className="w-5 h-5 text-gray-600" />
+                    ) : (
+                      <ChevronDown className="w-5 h-5 text-gray-600" />
+                    )}
+                  </div>
+                </div>
+              </button>
+
+              {/* 展開ボタン（閉じている時）*/}
+              {!isExpanded && (
+                <button
+                  onClick={() => setExpandedType(type)}
+                  className="w-full bg-white border-t-2 border-gray-200 py-3 px-6 text-center hover:bg-gray-50 transition-all font-semibold text-gray-700"
+                >
+                  詳しく見る 🔍
+                </button>
+              )}
+
+              {/* 詳細情報（展開時）*/}
+              {isExpanded && (
+                <div className="bg-white bg-opacity-60 border-t-2 border-opacity-30 p-6 space-y-4">
+                  {/* いまのあなたの状態 */}
+                  <div className="border-l-4 border-blue-400 pl-4">
+                    <h4 className="font-bold text-gray-800 mb-2">いまのあなたの状態</h4>
+                    <p className="text-gray-700 text-sm leading-relaxed">{typeInfo.state}</p>
+                  </div>
+
+                  {/* ボディケアで改善 */}
+                  <div className="border-l-4 border-green-400 pl-4">
+                    <h4 className="font-bold text-gray-800 mb-2">ボディケアで改善</h4>
+                    <ul className="space-y-2">
+                      {typeInfo.bodycare.map((care, idx) => (
+                        <li key={idx} className="flex gap-2 text-sm text-gray-700">
+                          <span className="text-green-500 font-bold">✓</span>
+                          <span>{care}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {/* 生活の整え方 */}
+                  <div className="border-l-4 border-purple-400 pl-4">
+                    <h4 className="font-bold text-gray-800 mb-2">生活の整え方</h4>
+                    <ul className="space-y-2">
+                      {typeInfo.lifestyle.map((life, idx) => (
+                        <li key={idx} className="flex gap-2 text-sm text-gray-700">
+                          <span className="text-purple-500 font-bold">✓</span>
+                          <span>{life}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* LINE誘導 */}
+      <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-xl border-2 border-green-300 p-6 mb-8 shadow-lg">
+        <h3 className="font-bold text-gray-800 mb-3 text-center">💎 次のステップ 💎</h3>
+        <p className="text-gray-700 font-semibold mb-4 text-center">暮らしごと体質改善</p>
+        <p className="text-sm text-gray-700 mb-4 text-center leading-relaxed">
+          生まれ持った体質チェック！あなたに合った体質改善法をご提案🧚‍♀️
+        </p>
+        <a
+          href="https://lin.ee/O5rxCQ9"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full bg-gradient-to-r from-green-400 to-emerald-400 hover:from-green-500 hover:to-emerald-500 text-white font-bold py-3 px-4 rounded-lg text-center transition-all block"
+        >
+          公式LINEで詳しく相談する →
+        </a>
+      </div>
+
+      {/* もう一度診断ボタン */}
+      <button
+        onClick={() => {
+          setChecked(new Array(22).fill(false));
+          setCurrentPage('check');
+        }}
+        className="w-full border-2 border-blue-400 text-blue-600 hover:bg-blue-50 font-bold py-3 px-6 rounded-lg transition-all"
+      >
+        もう一度診断する
+      </button>
+    </div>
+  </div>
+);
+```
+
+}
+};
+
+export default BodyConstitutionApp;
