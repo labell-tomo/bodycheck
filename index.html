@@ -15,7 +15,7 @@
 ```
     body {
         font-family: 'Segoe UI', 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-        background: linear-gradient(to bottom, #bfdbfe, #ecf8fc, #ffffff);
+        background-color: #A2E8FF;
         min-height: 100vh;
         padding: 16px;
     }
@@ -30,6 +30,19 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 24px;
+    }
+    
+    .header-logo {
+        display: flex;
+        align-items: center;
+        margin-right: 16px;
+    }
+    
+    .header-logo img {
+        max-width: 60px;
+        height: auto;
+        margin-right: 12px;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
     }
     
     h1 {
@@ -79,25 +92,32 @@
         font-size: 18px;
         border-radius: 9999px;
         margin-bottom: 12px;
+        border: 2px solid #FFD700;
+        box-shadow: 0 2px 8px rgba(255, 215, 0, 0.3);
     }
     
     .btn-primary:hover {
         background: linear-gradient(to right, #3b82f6, #0891b2);
         transform: scale(1.02);
+        border: 2px solid #FFC700;
+        box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
     }
     
     .btn-secondary {
         width: 100%;
-        border: 2px solid #60a5fa;
+        border: 2px solid #FFD700;
         color: #2563eb;
         background: white;
         padding: 12px;
         border-radius: 8px;
         cursor: pointer;
+        box-shadow: 0 2px 8px rgba(255, 215, 0, 0.2);
     }
     
     .btn-secondary:hover {
-        background: #eff6ff;
+        background: #f0f9ff;
+        border: 2px solid #FFC700;
+        box-shadow: 0 4px 12px rgba(255, 215, 0, 0.3);
     }
     
     .btn-back {
@@ -134,9 +154,9 @@
     }
     
     .logo-placeholder img {
-        max-width: 128px;
+        max-width: 180px;
         height: auto;
-        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+        filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
     }
     
     .subtitle {
@@ -431,6 +451,15 @@
         font-weight: 600;
         cursor: pointer;
         font-size: 14px;
+        border: 2px solid #FFD700;
+        border-top: none;
+        box-shadow: 0 2px 4px rgba(255, 215, 0, 0.2);
+    }
+    
+    .expand-btn:hover {
+        background: #f9fafb;
+        border: 2px solid #FFC700;
+        border-top: none;
     }
     
     .line-box {
@@ -519,8 +548,40 @@
             font-size: 24px;
         }
         
+        .logo-placeholder img {
+            max-width: 150px;
+        }
+        
+        .header-logo img {
+            max-width: 50px;
+        }
+        
         .result-grid {
             grid-template-columns: 1fr;
+        }
+        
+        .header {
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        
+        h2 {
+            font-size: 20px;
+        }
+    }
+    
+    @media (min-width: 1024px) {
+        .container {
+            max-width: 900px;
+        }
+        
+        .logo-placeholder img {
+            max-width: 200px;
+        }
+        
+        .header-logo img {
+            max-width: 70px;
         }
     }
 </style>
@@ -554,7 +615,10 @@
     <!-- チェックページ -->
     <div id="checkPage" class="page check-page">
         <div class="header">
-            <h2>チェックリスト</h2>
+            <div class="header-logo">
+                <img src="logo.png" alt="ボディバランスロゴ">
+                <h2>チェックリスト</h2>
+            </div>
             <button class="btn-back" onclick="showPage('topPage')">← 戻る</button>
         </div>
         
@@ -578,7 +642,10 @@
     <!-- 結果ページ -->
     <div id="resultPage" class="page result-page">
         <div class="header">
-            <h2>診断結果</h2>
+            <div class="header-logo">
+                <img src="logo.png" alt="ボディバランスロゴ">
+                <h2>診断結果</h2>
+            </div>
             <button class="btn-back" onclick="showPage('checkPage')">← 修正</button>
         </div>
         
