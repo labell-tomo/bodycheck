@@ -128,8 +128,15 @@
     }
     
     .logo-placeholder {
-        font-size: 64px;
         margin-bottom: 24px;
+        display: flex;
+        justify-content: center;
+    }
+    
+    .logo-placeholder img {
+        max-width: 128px;
+        height: auto;
+        filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
     }
     
     .subtitle {
@@ -525,8 +532,7 @@
         <!-- トップページ -->
         <div id="topPage" class="page active top-page">
             <div class="logo-placeholder">
-                <!-- ここにロゴ画像を挿入 -->
-                <!-- <img src="IMG_9279.png" alt="ロゴ" style="width: 128px; height: 128px; margin-bottom: 24px;"> -->
+                <img src="logo.png" alt="ボディバランスロゴ">
             </div>
 
 ```
@@ -614,7 +620,6 @@
 </div>
 
 <script>
-    // ===== データ設定 =====
     const checkItems = [
         "胸やおなかが張って苦しいことが多い",
         "イライラしやすく怒りっぽい",
@@ -678,7 +683,6 @@
 
     let checked = new Array(22).fill(false);
 
-    // ===== ページ表示 =====
     function showPage(pageId) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(pageId).classList.add('active');
@@ -689,7 +693,6 @@
         }
     }
 
-    // ===== チェックリスト描画 =====
     function renderChecklist() {
         const html = checkItems.map((item, index) => `
             <div class="check-item ${checked[index] ? 'checked' : ''}" onclick="toggleCheck(${index})">
@@ -706,13 +709,11 @@
         updateProgress();
     }
 
-    // ===== チェック切り替え =====
     function toggleCheck(index) {
         checked[index] = !checked[index];
         renderChecklist();
     }
 
-    // ===== 進捗更新 =====
     function updateProgress() {
         const count = checked.filter(c => c).length;
         document.getElementById('checkedCount').textContent = count;
@@ -721,7 +722,6 @@
         document.getElementById('resultBtn').disabled = count === 0;
     }
 
-    // ===== スコア計算 =====
     function calculateScores() {
         const scores = new Array(8).fill(0);
         checked.forEach((isChecked, itemIndex) => {
@@ -736,7 +736,6 @@
         return scores.map(s => s >= 10 ? Math.round((s / 2) * 10) / 10 : s);
     }
 
-    // ===== 結果描画 =====
     function renderResult() {
         const scores = calculateScores();
         const typeLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
@@ -745,17 +744,14 @@
             scoreMap[letter] = scores[index];
         });
 
-        // 虚・実スコア
         const kyoScore = scoreMap.A + scoreMap.B + scoreMap.C + scoreMap.D;
         const jitsuScore = scoreMap.E + scoreMap.F + scoreMap.G + scoreMap.H;
         document.getElementById('kyoScore').textContent = kyoScore.toFixed(1);
         document.getElementById('jitsuScore').textContent = jitsuScore.toFixed(1);
 
-        // 最大スコア
         const maxScore = Math.max(...scores);
         const maxTypes = typeLetters.filter((letter, index) => scores[index] === maxScore);
 
-        // 体質タイプ表示
         let resultHtml = '';
         maxTypes.forEach(type => {
             const info = constitutionTypes[type];
@@ -797,7 +793,6 @@
         });
         document.getElementById('resultTypes').innerHTML = resultHtml;
 
-        // 回答項目表示
         const answeredCount = checked.filter(c => c).length;
         document.getElementById('totalAnswered').textContent = answeredCount;
         let answeredHtml = '<div style="display: none;"></div>';
@@ -822,7 +817,6 @@
         document.getElementById('answeredItems').innerHTML = answeredHtml;
     }
 
-    // ===== 詳細表示切り替え =====
     function toggleTypeDetails(type) {
         const details = document.getElementById('details-' + type);
         const btn = document.querySelector('[onclick*="toggleTypeDetails(\'' + type + '\')"]');
@@ -844,13 +838,11 @@
         }
     }
 
-    // ===== リセット =====
     function resetDiagnosis() {
         checked = new Array(22).fill(false);
         showPage('checkPage');
     }
 
-    // 初期化
     renderChecklist();
 </script>
 ```
